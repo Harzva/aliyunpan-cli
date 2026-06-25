@@ -108,6 +108,7 @@ func (a *App) uploadFile(sess *session, driveID, localPath, remoteDir string, bl
 
 	hash := ""
 	proof := ""
+	contentHashName := "none"
 	if !noRapid {
 		hash, err = sha1File(file)
 		if err != nil {
@@ -117,6 +118,7 @@ func (a *App) uploadFile(sess *session, driveID, localPath, remoteDir string, bl
 			return nil, wrapError("filesystem_error", "failed to rewind local file", exitFilesystem, err)
 		}
 		proof = aliyunpan.CalcProofCode(sess.profile.AccessToken, rio.NewFileReaderAtLen64(file), info.Size())
+		contentHashName = "sha1"
 	}
 	checkNameMode := "auto_rename"
 	if overwrite {
@@ -128,7 +130,7 @@ func (a *App) uploadFile(sess *session, driveID, localPath, remoteDir string, bl
 		ParentFileId:    parent.FileId,
 		Size:            info.Size(),
 		ContentHash:     strings.ToUpper(hash),
-		ContentHashName: "sha1",
+		ContentHashName: contentHashName,
 		ProofCode:       proof,
 		ProofVersion:    "v1",
 		CheckNameMode:   checkNameMode,
@@ -147,6 +149,9 @@ func (a *App) uploadFile(sess *session, driveID, localPath, remoteDir string, bl
 			if err := putUploadPart(file, part.UploadURL, offset, length, info.Size(), a.errOut, showProgress); err != nil {
 				return nil, err
 			}
+		}
+		if showProgress {
+			fmt.Fprintln(a.errOut)
 		}
 		completeResult, apiE := sess.client.CompleteUploadFile(&aliyunpan.CompleteUploadFileParam{
 			DriveId:  createResult.DriveId,

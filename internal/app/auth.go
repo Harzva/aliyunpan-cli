@@ -25,6 +25,8 @@ type tokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int64  `json:"expires_in"`
+	ExpireIn     int64  `json:"expire_in"`
+	ExpiresTime  string `json:"expires_time"`
 	TokenType    string `json:"token_type"`
 	ExpiredAt    int64  `json:"expired_at"`
 	Message      string `json:"message"`
@@ -170,6 +172,14 @@ func tokenExpiry(tok *tokenResponse) int64 {
 	}
 	if tok.ExpiresIn > 0 {
 		return time.Now().Unix() + tok.ExpiresIn
+	}
+	if tok.ExpireIn > 0 {
+		return time.Now().Unix() + tok.ExpireIn
+	}
+	if tok.ExpiresTime != "" {
+		if t, err := time.Parse(time.RFC3339Nano, tok.ExpiresTime); err == nil {
+			return t.Unix()
+		}
 	}
 	return time.Now().Add(2 * time.Hour).Unix()
 }

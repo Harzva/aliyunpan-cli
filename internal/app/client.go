@@ -1,6 +1,9 @@
 package app
 
 import (
+	"path"
+	"strings"
+
 	"github.com/tickstep/aliyunpan-api/aliyunpan"
 	"github.com/tickstep/aliyunpan-api/aliyunpan/apierror"
 	"github.com/tickstep/aliyunpan-api/aliyunpan_open"
@@ -85,44 +88,11 @@ func normalizePanPath(p string) string {
 	if p == "" {
 		return "/"
 	}
-	p = stringsReplaceBackslash(p)
-	if p[0] != '/' {
+	p = strings.ReplaceAll(p, "\\", "/")
+	if !strings.HasPrefix(p, "/") {
 		p = "/" + p
 	}
-	return cleanPanPath(p)
-}
-
-func stringsReplaceBackslash(s string) string {
-	b := []byte(s)
-	for i := range b {
-		if b[i] == '\\' {
-			b[i] = '/'
-		}
-	}
-	return string(b)
-}
-
-func cleanPanPath(p string) string {
-	out := make([]byte, 0, len(p))
-	lastSlash := false
-	for i := 0; i < len(p); i++ {
-		if p[i] == '/' {
-			if !lastSlash {
-				out = append(out, '/')
-			}
-			lastSlash = true
-			continue
-		}
-		out = append(out, p[i])
-		lastSlash = false
-	}
-	if len(out) > 1 && out[len(out)-1] == '/' {
-		out = out[:len(out)-1]
-	}
-	if len(out) == 0 {
-		return "/"
-	}
-	return string(out)
+	return path.Clean(p)
 }
 
 func fileOutput(f *aliyunpan.FileEntity) map[string]any {
