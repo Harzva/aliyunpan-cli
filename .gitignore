@@ -1,0 +1,13 @@
+.DS_Store
+/aliyunpan-cli
+/dist/
+/tmp/
+*.log
+*.test
+coverage.out
+
+# Local credentials/config snapshots.
+.env
+*.env
+config.json
+aliyunpan_config.json
